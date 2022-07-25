@@ -50,8 +50,9 @@ class ComicMerge:
 
         # Flatten file structure (subdirectories mess with some readers)
         files_moved = 1
-        for path_to_dir, subdir_names, file_names in os.walk(temp_dir, False):
-            for file_name in file_names:
+        for path_to_dir, subdir_names, file_names in sorted(os.walk(temp_dir, False)):
+            subdir_names.sort() #hack to sort os.walk in place
+            for file_name in sorted(file_names):
                 file_path = os.path.join(path_to_dir, file_name)
                 ext = os.path.splitext(file_name)[1]
                 new_name = 'P' + str(files_moved).rjust(5, '0') + ext
@@ -62,8 +63,9 @@ class ComicMerge:
             # Deletes all subdirectories (in the end we want a flat structure)
             # This will not affect walking through the rest of the directories,
             # because it is traversed from the bottom up instead of top down
-            for subdir_name in subdir_names:
-                shutil.rmtree(os.path.join(path_to_dir, subdir_name))
+        for path_to_dir, subdir_names, file_names in sorted(os.walk(temp_dir, False)):
+            for subdir in subdir_names:
+                shutil.rmtree(os.path.join(path_to_dir, subdir))
 
     def _make_cbz_from_dir(self, temp_dir):
         self._log('Initializing cbz ' + self.output_name)
@@ -72,6 +74,7 @@ class ComicMerge:
         self._log('Adding files to cbz ' + self.output_name)
         add_count = 0
         for path_to_dir, subdir_names, file_names in os.walk(temp_dir):
+            subdir_names.sort() #hack to sort os.walk in place
             for file_name in file_names:
                 file_path = os.path.join(path_to_dir, file_name)
                 zip_file.write(file_path, os.path.split(file_path)[1])
@@ -109,6 +112,7 @@ class ComicMerge:
         for file_name in os.listdir('.'):  # We're not traversing subdirectories because that's a boondoggle
             if os.path.splitext(file_name)[1] == '.cbz':
                 comics.append(file_name)
+        comics.sort()
         return comics
 
     def merge(self):
